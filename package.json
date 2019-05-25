@@ -1,0 +1,52 @@
+{
+  "name": "@wirelineio/credentials",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Verifiable Credentials",
+  "repository": "https://github.com/wirelineio/credentials",
+  "license": "MIT",
+  "module": "dist/es/index.js",
+  "bugs": {
+    "url": "https://github.com/wirelineio/credentials/issues"
+  },
+  "scripts": {
+    "build": "npm run clean && babel ./src --out-dir ./dist/es --ignore \"**/*.test.js\"",
+    "clean": "rm -rf dist",
+    "lint": "eslint ./src",
+    "test": "jest --silent"
+  },
+  "lint-staged": {
+    "*.js": "eslint --ignore-path .eslintignore"
+  },
+  "pre-commit": [
+    "lint"
+  ],
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "dependencies": {
+    "ajv": "^6.10.0",
+    "buffer-from": "^1.0.0",
+    "canonical-json": "^0.0.4",
+    "hypercore-crypto": "^1.0.0",
+    "pify": "^4.0.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "babel-eslint": "^10.0.1",
+    "babel-plugin-inline-import": "^3.0.0",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
+    "eslint-plugin-react": "^7.13.0",
+    "jest": "^24.5.0",
+    "lint-staged": "^8.1.7",
+    "pre-commit": "^1.2.2"
+  }
+}

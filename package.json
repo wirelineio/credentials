@@ -19,6 +19,7 @@
     "*.js": "eslint --ignore-path .eslintignore"
   },
   "pre-commit": [
+    "test",
     "lint"
   ],
   "browserslist": [

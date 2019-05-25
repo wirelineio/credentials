@@ -12,8 +12,6 @@ import PresentationSchema from './schema/presentation.json';
 
 const cipher = 'ed25519';
 
-// TODO(burdon): Use buffer-from.
-
 /** Add unique item to list. */
 function concatUnique(items = [], item) {
   return [item].concat((items.length ? items : [item]).filter(t => t !== item));
@@ -23,8 +21,8 @@ function concatUnique(items = [], item) {
  * Creates a standard proof object.
  * https://w3c.github.io/vc-data-model/#proofs-signatures
  *
- * @param publicKey
- * @param signature
+ * @param {Buffer} publicKey
+ * @param {Buffer} signature
  */
 function createProof(publicKey, signature) {
   return {
@@ -39,8 +37,7 @@ function createProof(publicKey, signature) {
 }
 
 //
-// JSON Schema: http://json-schema.org
-// TODO(burdon): https://github.com/w3c/vc-imp-guide/issues/1
+// JSON Schema (http://json-schema.org)
 //
 
 const ajv = new Ajv();
@@ -62,8 +59,8 @@ export function validatePresentation(presentation) {
 // Serialization
 //
 
-export function toToken(object) {
-  return bufferFrom(canonicalStringify(object)).toString();
+export function toToken(json) {
+  return bufferFrom(canonicalStringify(json)).toString();
 }
 
 export function parseToken(token) {
@@ -79,10 +76,10 @@ export function parseToken(token) {
  * @param properties
  * @param claim
  */
-// TODO(burdon): Check/validate @context?
 export function createCredential(keyPair, properties, claim) {
   const credential = { ...properties, credentialSubject: claim };
 
+  // TODO(burdon): Check/validate @context?
   credential.type = concatUnique(properties.type, 'VerifiableCredential');
 
   const message = bufferFrom(canonicalStringify(credential));
@@ -98,9 +95,10 @@ export function createCredential(keyPair, properties, claim) {
  * @param credential
  * @return {boolean}
  */
-// TODO(burdon): Additional well-formed checks.
 export function verifyCredential(publicKey, credential) {
   const { proof } = credential;
+
+  // TODO(burdon): Additional well-formed checks.
   if (publicKey.toString('hex') !== proof.creator) {
     return false;
   }
@@ -120,10 +118,10 @@ export function verifyCredential(publicKey, credential) {
  * @param properties
  * @param credential
  */
-// TODO(burdon): Check/validate @context.
 export function createPresentation(keyPair, properties, credential) {
   const presentation = { ...properties, verifiableCredential: credential };
 
+  // TODO(burdon): Check/validate @context.
   presentation.type = concatUnique(presentation.type, 'VerifiablePresentation');
 
   const message = bufferFrom(canonicalStringify(presentation));
@@ -139,9 +137,10 @@ export function createPresentation(keyPair, properties, credential) {
  * @param presentation
  * @return {boolean}
  */
-// TODO(burdon): Additional well-formed checks.
 export function verifyPresentation(publicKey, presentation) {
   const { proof } = presentation;
+
+  // TODO(burdon): Additional well-formed checks.
   if (publicKey.toString('hex') !== proof.creator) {
     return false;
   }

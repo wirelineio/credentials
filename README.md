@@ -2,7 +2,7 @@
 
 A simple library to create and validate verifiable credentials from the [Web3 spec](https://w3c.github.io/vc-data-model).
 
-```
+```bash
 npm install @wirelineio/credentials
 ```
 
@@ -10,7 +10,7 @@ npm install @wirelineio/credentials
 
 To create and verify a verifiable credential:
 
-```
+```javascript
 import { createCredential, verifyCredential } from '@wirelineio/credentials';
 
 const claim = {
@@ -39,7 +39,7 @@ verifyCredential(issuerKeyPair.publicKey, issuedCredential);
 
 To create and verify a verifiable presentation:
 
-```
+```javascript
 import { createPresentation, verifyPresentation } from '@wirelineio/credentials';
 
 const presenterMetadata = {

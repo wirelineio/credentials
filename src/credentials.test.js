@@ -4,6 +4,9 @@
 
 import crypto from 'hypercore-crypto';
 
+// TODO(burdon): Redo as protocol buffers (automated validation, tokenization).
+// TODO(burdon): Complain to W3C about "@context" name: https://github.com/w3c/vc-data-model/issues/642
+
 import {
   validateCredential,
   validatePresentation,

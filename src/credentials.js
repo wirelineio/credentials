@@ -21,19 +21,42 @@ function concatUnique(items = [], item) {
  * Creates a standard proof object.
  * https://w3c.github.io/vc-data-model/#proofs-signatures
  *
- * @param {Buffer} publicKey
- * @param {Buffer} signature
+ * @param {Buffer} keyPair
+ * @param {Buffer} message
  */
-function createProof(publicKey, signature) {
+function createProof(keyPair, message) {
   return {
     type: cipher,
     created: new Date().toISOString(),
-    creator: publicKey.toString('hex'),
+    creator: keyPair.publicKey.toString('hex'),
+
+    // TODO(burdon): nonce. domain for presentation?
 
     // https://w3c.github.io/vc-data-model/#json-web-token
-    // TODO(burdon): Document why not using jws (https://tools.ietf.org/html/rfc7515)
-    signature: signature.toString('hex')
+    // TODO(burdon): Document why we are not using jws (https://tools.ietf.org/html/rfc7515)
+    signature: crypto.sign(bufferFrom(canonicalStringify(message)), keyPair.secretKey).toString('hex')
   };
+}
+
+/**
+ * Verify the proof matches the credential/presentation.
+ *
+ * @param publicKey
+ * @param message
+ * @return {boolean}
+ */
+function verifyProof(publicKey, message) {
+  const { proof } = message;
+
+  // TODO(burdon): Additional well-formed checks.
+  if (publicKey.toString('hex') !== proof.creator) {
+    return false;
+  }
+
+  const obj = Object.assign({}, message);
+  delete obj.proof;
+
+  return crypto.verify(bufferFrom(canonicalStringify(obj)), proof.signature, publicKey);
 }
 
 //
@@ -74,16 +97,16 @@ export function parseToken(token) {
  *
  * @param keyPair
  * @param properties
- * @param claim
+ * @param subject
  */
-export function createCredential(keyPair, properties, claim) {
-  const credential = { ...properties, credentialSubject: claim };
+export function createCredential(keyPair, properties, subject) {
+  const credential = { ...properties, credentialSubject: subject };
 
-  // TODO(burdon): Check/validate @context?
+  // TODO(burdon): Use avj to augment object.
+  credential['@context'] = concatUnique(credential['@context'], 'https://www.w3.org/2018/credentials/v1');
   credential.type = concatUnique(properties.type, 'VerifiableCredential');
 
-  const message = bufferFrom(canonicalStringify(credential));
-  const proof = createProof(keyPair.publicKey, crypto.sign(message, keyPair.secretKey));
+  const proof = createProof(keyPair, credential);
 
   return { ...credential, proof };
 }
@@ -96,17 +119,11 @@ export function createCredential(keyPair, properties, claim) {
  * @return {boolean}
  */
 export function verifyCredential(publicKey, credential) {
-  const { proof } = credential;
-
-  // TODO(burdon): Additional well-formed checks.
-  if (publicKey.toString('hex') !== proof.creator) {
+  if (!validateCredential(credential)) {
     return false;
   }
 
-  const message = Object.assign({}, credential);
-  delete message.proof;
-
-  return crypto.verify(bufferFrom(canonicalStringify(message)), proof.signature, publicKey);
+  return verifyProof(publicKey, credential);
 }
 
 /**
@@ -121,11 +138,11 @@ export function verifyCredential(publicKey, credential) {
 export function createPresentation(keyPair, properties, credential) {
   const presentation = { ...properties, verifiableCredential: credential };
 
-  // TODO(burdon): Check/validate @context.
+  // TODO(burdon): Use avj to augment object.
+  presentation['@context'] = concatUnique(presentation['@context'], 'https://www.w3.org/2018/credentials/v1');
   presentation.type = concatUnique(presentation.type, 'VerifiablePresentation');
 
-  const message = bufferFrom(canonicalStringify(presentation));
-  const proof = createProof(keyPair.publicKey, crypto.sign(message, keyPair.secretKey));
+  const proof = createProof(keyPair, presentation);
 
   return { ...presentation, proof };
 }
@@ -138,15 +155,9 @@ export function createPresentation(keyPair, properties, credential) {
  * @return {boolean}
  */
 export function verifyPresentation(publicKey, presentation) {
-  const { proof } = presentation;
-
-  // TODO(burdon): Additional well-formed checks.
-  if (publicKey.toString('hex') !== proof.creator) {
+  if (!validatePresentation(presentation)) {
     return false;
   }
 
-  const message = Object.assign({}, presentation);
-  delete message.proof;
-
-  return crypto.verify(bufferFrom(canonicalStringify(message)), proof.signature, publicKey);
+  return verifyProof(publicKey, presentation);
 }

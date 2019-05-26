@@ -30,10 +30,7 @@ test('basic encoding/decoding of credentials', () => {
 
   const claim = {
     id: 'did:example:ebfeb1f712ebc6f1c276e12ec21',
-    degree: {
-      type: 'BachelorDegree',
-      name: 'Computer Science'
-    }
+    alumniOf: '<span lang=\'en\'>Example University</span>'
   };
 
   const issuerMetadata = {
@@ -43,6 +40,8 @@ test('basic encoding/decoding of credentials', () => {
     ],
 
     id: 'did:example:abfe13f712120431c276e12ecab',
+    type: ['VerifiableCredential', 'AlumniCredential'],
+    issuer: 'https://example.edu/issuers/565049',
     issuanceDate: new Date().toISOString()
   };
 
@@ -62,8 +61,7 @@ test('basic encoding/decoding of credentials', () => {
       'https://www.w3.org/2018/credentials/examples/v1'
     ],
 
-    id: 'did:example:abfe13f712120431c276e12ecab',
-    presentationDate: new Date().toISOString()
+    type: ['VerifiablePresentation', 'CredentialManagerPresentation']
   };
 
   const presenterKeyPair = crypto.keyPair();

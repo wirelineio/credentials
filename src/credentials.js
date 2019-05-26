@@ -22,9 +22,10 @@ function concatUnique(items = [], item) {
  * https://w3c.github.io/vc-data-model/#proofs-signatures
  *
  * @param {Buffer} keyPair
- * @param {Buffer} message
+ * @param {Buffer} obj
  */
-function createProof(keyPair, message) {
+function createProof(keyPair, obj) {
+
   return {
     type: cipher,
     created: new Date().toISOString(),
@@ -34,7 +35,7 @@ function createProof(keyPair, message) {
 
     // https://w3c.github.io/vc-data-model/#json-web-token
     // TODO(burdon): Document why we are not using jws (https://tools.ietf.org/html/rfc7515)
-    signature: crypto.sign(bufferFrom(canonicalStringify(message)), keyPair.secretKey).toString('hex')
+    signature: crypto.sign(bufferFrom(canonicalStringify(obj)), keyPair.secretKey).toString('hex')
   };
 }
 
@@ -42,21 +43,18 @@ function createProof(keyPair, message) {
  * Verify the proof matches the credential/presentation.
  *
  * @param publicKey
- * @param message
+ * @param obj
+ * @param proof
  * @return {boolean}
  */
-function verifyProof(publicKey, message) {
-  const { proof } = message;
+function verifyProof(publicKey, obj, proof) {
 
   // TODO(burdon): Additional well-formed checks.
   if (publicKey.toString('hex') !== proof.creator) {
     return false;
   }
 
-  const obj = Object.assign({}, message);
-  delete obj.proof;
-
-  return crypto.verify(bufferFrom(canonicalStringify(obj)), proof.signature, publicKey);
+  return crypto.verify(bufferFrom(canonicalStringify(obj)), bufferFrom(proof.signature, 'hex'), publicKey);
 }
 
 //
@@ -83,11 +81,11 @@ export function validatePresentation(presentation) {
 //
 
 export function toToken(json) {
-  return bufferFrom(canonicalStringify(json)).toString();
+  return bufferFrom(canonicalStringify(json)).toString('hex');
 }
 
 export function parseToken(token) {
-  return JSON.parse(bufferFrom(token));
+  return JSON.parse(bufferFrom(token, 'hex'));
 }
 
 /**
@@ -123,7 +121,11 @@ export function verifyCredential(publicKey, credential) {
     return false;
   }
 
-  return verifyProof(publicKey, credential);
+  const { proof } = credential;
+  const obj = Object.assign({}, credential);
+  delete obj.proof;
+
+  return verifyProof(publicKey, obj, proof);
 }
 
 /**
@@ -159,5 +161,9 @@ export function verifyPresentation(publicKey, presentation) {
     return false;
   }
 
-  return verifyProof(publicKey, presentation);
+  const { proof } = presentation;
+  const obj = Object.assign({}, presentation);
+  delete obj.proof;
+
+  return verifyProof(publicKey, obj, proof);
 }

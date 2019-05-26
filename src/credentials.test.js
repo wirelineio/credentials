@@ -10,7 +10,9 @@ import {
   createCredential,
   createPresentation,
   verifyCredential,
-  verifyPresentation
+  verifyPresentation,
+  toToken,
+  parseToken
 } from './credentials';
 
 import CredentialTest from './testing/test_credential.json';
@@ -47,9 +49,12 @@ test('basic encoding/decoding of credentials', () => {
 
   const issuerKeyPair = crypto.keyPair();
   const issuedCredential = createCredential(issuerKeyPair, issuerMetadata, claim);
-  console.log('Credential:', JSON.stringify(issuedCredential, null, 2));
+  // console.log('Credential:', JSON.stringify(issuedCredential, null, 2));
 
-  verifyCredential(issuerKeyPair.publicKey, issuedCredential);
+  {
+    const ok = verifyCredential(issuerKeyPair.publicKey, issuedCredential);
+    expect(ok).toBeTruthy();
+  }
 
   //
   // Presented Credential
@@ -66,7 +71,17 @@ test('basic encoding/decoding of credentials', () => {
 
   const presenterKeyPair = crypto.keyPair();
   const presentedCredential = createPresentation(presenterKeyPair, presenterMetadata, issuedCredential);
-  console.log('Presentation:', JSON.stringify(presentedCredential, null, 2));
+  // console.log('Presentation:', JSON.stringify(presentedCredential, null, 2));
 
-  verifyPresentation(presenterKeyPair.publicKey, presentedCredential);
+  {
+    const ok = verifyPresentation(presenterKeyPair.publicKey, presentedCredential);
+    expect(ok).toBeTruthy();
+  }
+
+  //
+  // Tokenized
+  //
+
+  const token = toToken(presentedCredential);
+  expect(parseToken(token)).toEqual(presentedCredential);
 });
